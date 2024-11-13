@@ -1,0 +1,40 @@
+GET http://192.168.1.89:3000/ HTTP/1.1
+#############################################################
+###
+POST http://192.168.1.89:3000/login HTTP/1.1
+Content-Type: application/json
+
+{
+    "nombreUsuario": "Daril",
+    "contrasena": "8520"
+}
+
+###
+GET http://192.168.1.89:3000/clientes HTTP/1.1
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub21icmVVc3VhcmlvIjoiRGFyaWwiLCJpYXQiOjE3MzEyOTYxNjMsImV4cCI6MTczMTI5NjQ2M30.UVekfhw5Q8gZY0-5yxDUDtimNi1oBLeKvmva1aH_MgA
+
+###
+POST http://192.168.1.89:3000/clientes HTTP/1.1
+Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub21icmVVc3VhcmlvIjoiRGFyaWwiLCJpYXQiOjE3MzEyOTYxNjMsImV4cCI6MTczMTI5NjQ2M30.UVekfhw5Q8gZY0-5yxDUDtimNi1oBLeKvmva1aH_MgA
+
+{
+    "nombre": "Angel",
+    "apellidoPaterno": "Escobar",
+    "apellidoMaterno": "Jimenez",
+    "correoElectronico": "AngelT9@gmail.com",
+    "telefono": "1234567890"
+}
+
+###
+PUT http://192.168.1.89:3000/clientes/1 HTTP/1.1
+Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub21icmVVc3VhcmlvIjoiRGFyaWwiLCJpYXQiOjE3MzEyOTYxNjMsImV4cCI6MTczMTI5NjQ2M30.UVekfhw5Q8gZY0-5yxDUDtimNi1oBLeKvmva1aH_MgA
+
+{
+    "telefono": "055555555"
+}
+
+###
+DELETE http://192.168.1.89:3000/clientes/2 HTTP/1.1
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub21icmVVc3VhcmlvIjoiRGFyaWwiLCJpYXQiOjE3MzEyOTYxNjMsImV4cCI6MTczMTI5NjQ2M30.UVekfhw5Q8gZY0-5yxDUDtimNi1oBLeKvmva1aH_MgA

@@ -1,120 +1,21 @@
 import express from "express";
-import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
 import { sequelize } from './connection.mjs';
-import { Usuario, Cliente, Direccion, Producto, Categoria, Proveedor, CompraProveedor, DetalleCompraProveedor, Venta, DetalleVenta, Pago, Carrito, DetalleCarrito } from './models.mjs';
-import cors from 'cors';
-
+import { Cliente, Producto, Compra, DetalleCompra } from './models.mjs';
 
 const app = express();
 const port = 3000;
 
-app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-dotenv.config();
-app.use(cors());
-
-
-
-const generateAccessToken = (Usuario) => {
-    // user debe ser un objeto, por ejemplo: { username: 'nombre' }
-    return jwt.sign(Usuario, process.env.SECRET, { expiresIn: '5m' });
-};
-
-const validateToken = (req, res, next) => {
-    const accessToken = req.headers['authorization'] || req.query.accessToken;
-    if (!accessToken) res.send('Acceso denegado');
-
-    jwt.verify(accessToken, process.env.SECRET, (err, user) => {
-        if (err) {
-            return res.send('Acceso Denegado, Token inválido o expirado');
-        }
-        req.Usuario = Usuario;
-        next();
-    });
-
-};
-
-const verificarUsuario = async (nombreUsuario2, contrasena) => {
-    try {
-        // Busca el usuario en la base de datos
-        const usuario = await Usuario.findOne({ where: { nombreUsuario: nombreUsuario2 } });
-
-        if (!usuario) {
-            // Usuario no encontrado
-            console.log('Usuario no encontrado');
-            return 1;
-        }
-
-        // Verifica si la contraseña coincide
-        if (usuario.contrasena === contrasena) {
-            return 0;
-        } else {
-            return 2;
-        }
-    } catch (error) {
-        console.log('Error en la verificación de usuario:', error);
-        return 3;
-    }
-};
-
 
 app.get('/', (req, res) => {
     res.send('Hello Keyboard Store API!');
 });
 
-app.get('/usuarios', validateToken, async (req, res) => {
-    try {
-        const usuarios = await Usuario.findAll();
-        return res.json({ usuarios: usuarios });
-    } catch (error) {
-        console.log('Error', error);
-        return res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-app.post('/usuarios', async (req, res) => {
-    try {
-        const { nombreUsuario, contrasena, rol, correoElectronico } = req.body;
-        if (!nombreUsuario || !contrasena || !rol || !correoElectronico) {
-            return res.status(400).json({ message: 'Nombre de Usuario, Contraseña, Rol y Correo Electrónico son requeridos' });
-        }
-        const nuevoUsuario = await Usuario.create({ nombreUsuario, contrasena, rol, correoElectronico });
-        return res.status(201).json({ usuario: nuevoUsuario });
-    }
-    catch (error) {
-        console.log('Error', error);
-        return res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-app.post('/login', async (req, res) => {
-    const { nombreUsuario, contrasena } = req.body;
-
-    if (!nombreUsuario || !contrasena) {
-        return res.status(400).json({ message: 'Usuario o contraseña no proporcionado' });
-    }
-    const isVerified = await verificarUsuario(nombreUsuario, contrasena);
-    if (isVerified === 0) {
-        const accessToken = generateAccessToken({ nombreUsuario: nombreUsuario });
-        return res.header('authorization', accessToken).json({
-            message: 'Login exitoso',
-            accessToken: accessToken
-        });
-    } else {
-        return res.status(401).json({ message: 'Usuario o contraseña incorrectos ' + isVerified });
-    }
-});
-
-
 // Obtener todos los clientes
-app.get('/clientes', validateToken, async (req, res) => {
+app.get('/clientes', async (req, res) => {
     try {
         const clientes = await Cliente.findAll();
-        return res.json({ 
-            message: 'Clientes obtenidos correctamente',
-            username: req.user, clientes 
-        });
+        return res.json({ clientes });
     } catch (error) {
         console.log('Error', error);
         return res.status(500).json({ message: 'Internal server error' });
@@ -122,17 +23,14 @@ app.get('/clientes', validateToken, async (req, res) => {
 });
 
 // Crear un nuevo cliente
-app.post('/clientes', validateToken, async (req, res) => {
-    try{
-        const { nombre, apellidoPaterno, apellidoMaterno, correoElectronico, telefono } = req.body;
+app.post('/clientes', async (req, res) => {
+    try {
+        const { nombre, correoElectronico, direccion, telefono } = req.body;
         if (!nombre || !correoElectronico) {
             return res.status(400).json({ message: 'Nombre y Correo Electrónico son requeridos' });
         }
-        const nuevoCliente = await Cliente.create({ nombre, apellidoPaterno, apellidoMaterno, correoElectronico, telefono });
-        return res.status(201).json({
-            message: 'Cliente creado correctamente',
-            cliente: nuevoCliente 
-        });
+        const nuevoCliente = await Cliente.create({ nombre, correoElectronico, direccion, telefono });
+        return res.status(201).json({ cliente: nuevoCliente });
     } catch (error) {
         console.log('Error', error);
         return res.status(500).json({ message: 'Internal server error' });
@@ -140,65 +38,35 @@ app.post('/clientes', validateToken, async (req, res) => {
 });
 
 // Actualizar un cliente por id
-app.put('/clientes/:id', validateToken, async (req, res) => {
-    try{
+app.put('/clientes/:id', async (req, res) => {
+    try {
         const cliente = await Cliente.findByPk(req.params.id);
         if (!cliente) {
             return res.status(404).json({ message: 'Cliente no encontrado' });
         }
-        const { nombre, apellidoPaterno, apellidoMaterno, correoElectronico, telefono } = req.body;
+        const { nombre, correoElectronico, direccion, telefono } = req.body;
         if (nombre) {
             cliente.nombre = nombre;
         }
-        if (apellidoPaterno) {
-            cliente.apellidoPaterno = apellidoPaterno;
-        }
-        if (apellidoMaterno) {
-            cliente.apellidoMaterno = apellidoMaterno;
-        }
         if (correoElectronico) {
             cliente.correoElectronico = correoElectronico;
+        }
+        if (direccion) {
+            cliente.direccion = direccion;
         }
         if (telefono) {
             cliente.telefono = telefono;
         }
         await cliente.save();
-        return res.json({ 
-            message: 'Cliente actualizado correctamente',
-            cliente: cliente 
-        });
+        return res.json({ cliente });
     } catch (error) {
         console.log('Error', error);
         return res.status(500).json({ message: 'Internal server error' });
     }
-    // try {
-    //     const cliente = await Cliente.findByPk(req.params.id);
-    //     if (!cliente) {
-    //         return res.status(404).json({ message: 'Cliente no encontrado' });
-    //     }
-    //     const { nombre, correoElectronico, direccion, telefono } = req.body;
-    //     if (nombre) {
-    //         cliente.nombre = nombre;
-    //     }
-    //     if (correoElectronico) {
-    //         cliente.correoElectronico = correoElectronico;
-    //     }
-    //     if (direccion) {
-    //         cliente.direccion = direccion;
-    //     }
-    //     if (telefono) {
-    //         cliente.telefono = telefono;
-    //     }
-    //     await cliente.save();
-    //     return res.json({ cliente });
-    // } catch (error) {
-    //     console.log('Error', error);
-    //     return res.status(500).json({ message: 'Internal server error' });
-    // }
 });
 
 // Eliminar un cliente por id
-app.delete('/clientes/:id', validateToken, async (req, res) => {
+app.delete('/clientes/:id', async (req, res) => {
     try {
         const cliente = await Cliente.findByPk(req.params.id);
         if (!cliente) {
@@ -213,7 +81,7 @@ app.delete('/clientes/:id', validateToken, async (req, res) => {
 });
 
 // Obtener todos los productos
-app.get('/productos', validateToken, async (req, res) => {
+app.get('/productos', async (req, res) => {
     try {
         const productos = await Producto.findAll();
         return res.json({ productos });
@@ -224,7 +92,7 @@ app.get('/productos', validateToken, async (req, res) => {
 });
 
 // Crear un nuevo producto
-app.post('/productos', validateToken, async (req, res) => {
+app.post('/productos', async (req, res) => {
     try {
         const { nombre, tipoProducto, descripcion, precio, stock } = req.body;
         if (!nombre || !precio || !stock) {
@@ -239,7 +107,7 @@ app.post('/productos', validateToken, async (req, res) => {
 });
 
 // Actualizar un producto por id
-app.put('/productos/:id', validateToken, async (req, res) => {
+app.put('/productos/:id', async (req, res) => {
     try {
         const producto = await Producto.findByPk(req.params.id);
         if (!producto) {
@@ -270,7 +138,7 @@ app.put('/productos/:id', validateToken, async (req, res) => {
 });
 
 // Eliminar un producto por id
-app.delete('/productos/:id', validateToken, async (req, res) => {
+app.delete('/productos/:id', async (req, res) => {
     try {
         const producto = await Producto.findByPk(req.params.id);
         if (!producto) {
@@ -285,7 +153,7 @@ app.delete('/productos/:id', validateToken, async (req, res) => {
 });
 
 // Obtener todas las compras
-app.get('/compras', validateToken, async (req, res) => {
+app.get('/compras', async (req, res) => {
     try {
         const compras = await Compra.findAll({ include: DetalleCompra });
         return res.json({ compras });
@@ -296,7 +164,7 @@ app.get('/compras', validateToken, async (req, res) => {
 });
 
 // Obtener una compra por id
-app.get('/compras/:id', validateToken, async (req, res) => {
+app.get('/compras/:id', async (req, res) => {
     try {
         const compra = await Compra.findByPk(req.params.id, { include: DetalleCompra });
         if (!compra) {
@@ -310,7 +178,7 @@ app.get('/compras/:id', validateToken, async (req, res) => {
 });
 
 // Crear una nueva compra
-app.post('/compras', validateToken, async (req, res) => {
+app.post('/compras', async (req, res) => {
     try {
         const { clienteId, total, detalles } = req.body;  // detalles es un array de objetos [{ productoId, cantidad, precioUnitario }]
         if (!clienteId || !total || !detalles || !detalles.length) {
@@ -333,7 +201,7 @@ app.post('/compras', validateToken, async (req, res) => {
 });
 
 // Actualizar una compra por id
-app.put('/compras/:id', validateToken, async (req, res) => {
+app.put('/compras/:id', async (req, res) => {
     try {
         const compra = await Compra.findByPk(req.params.id);
         if (!compra) {
@@ -355,7 +223,7 @@ app.put('/compras/:id', validateToken, async (req, res) => {
 });
 
 // Eliminar una compra por id
-app.delete('/compras/:id', validateToken, async (req, res) => {
+app.delete('/compras/:id', async (req, res) => {
     try {
         const compra = await Compra.findByPk(req.params.id);
         if (!compra) {
@@ -378,7 +246,7 @@ sequelize
     })
     .then(() => {
         console.log('Modelos sincronizados');
-        app.listen(port, '192.168.233.125',() => {
+        app.listen(port, () => {
             console.log(`Servidor corriendo en http://localhost:${port}`);
         });
     })

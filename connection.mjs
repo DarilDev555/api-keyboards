@@ -1,6 +1,6 @@
 import { Sequelize } from 'sequelize';
 
-const database = "tienda_teclados";
+const database = "api_teclados";
 const username = "postgres";
 const password = "7410";
 const host = "localhost";

@@ -1,0 +1,16 @@
+[
+    {
+        "id": 1,
+        "compraId": 1,
+        "productoId": 1,
+        "cantidad": 3,
+        "precioUnitario": 0.5
+    },
+    {
+        "id": 2,
+        "compraId": 1,
+        "productoId": 1,
+        "cantidad": 2,
+        "precioUnitario": 50
+    }
+]
