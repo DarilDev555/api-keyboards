@@ -9,7 +9,7 @@ import cors from 'cors';
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 dotenv.config();
 app.use(cors());
@@ -468,8 +468,8 @@ sequelize
     })
     .then(() => {
         console.log('Modelos sincronizados');
-        app.listen(port, '192.168.1.89',() => {
-            console.log(`Servidor corriendo en http://localhost:${port}`);
+        app.listen(port , () => {
+            console.log(`Servidor corriendo en ${port}`);
         });
     })
     .catch((error) => {

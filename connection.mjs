@@ -1,9 +1,9 @@
 import { Sequelize } from 'sequelize';
 
-const database = "api_teclados";
-const username = "postgres";
-const password = "7410";
-const host = "localhost";
+const database = process.env.DB_NAME || "api_teclados";
+const username = process.env.DB_USER || "postgres";
+const password = process.env.DB_PASSWORD || "7410";
+const host = process.env.DB_HOST || "localhost";
 
 const sequelize = new Sequelize(database, username, password, {
     host: host,
