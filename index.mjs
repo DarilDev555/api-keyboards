@@ -18,7 +18,7 @@ app.use(cors());
 
 const generateAccessToken = (Usuario) => {
     // user debe ser un objeto, por ejemplo: { username: 'nombre' }
-    return jwt.sign(Usuario, process.env.SECRET, { expiresIn: '5m' });
+    return jwt.sign(Usuario, process.env.SECRET, { expiresIn: '50m' });
 };
 
 const validateToken = (req, res, next) => {
@@ -96,10 +96,13 @@ app.post('/login', async (req, res) => {
     }
     const isVerified = await verificarUsuario(nombreUsuario, contrasena);
     if (isVerified === 0) {
+        const nombreUsuario2 = nombreUsuario;
+        const usuario = await Usuario.findOne({ where: { nombreUsuario: nombreUsuario2 } });
         const accessToken = generateAccessToken({ nombreUsuario: nombreUsuario });
         return res.header('authorization', accessToken).json({
             message: 'Login exitoso',
-            accessToken: accessToken
+            accessToken: accessToken,
+            usuario: usuario
         });
     } else {
         return res.status(401).json({ message: 'Usuario o contraseña incorrectos ' + isVerified });
@@ -113,7 +116,8 @@ app.get('/clientes', validateToken, async (req, res) => {
         const clientes = await Cliente.findAll();
         return res.json({ 
             message: 'Clientes obtenidos correctamente',
-            username: req.user, clientes 
+            username: req.user, 
+            clientes 
         });
     } catch (error) {
         console.log('Error', error);
@@ -216,7 +220,10 @@ app.delete('/clientes/:id', validateToken, async (req, res) => {
 app.get('/productos', validateToken, async (req, res) => {
     try {
         const productos = await Producto.findAll();
-        return res.json({ productos });
+        return res.json({ 
+            message: 'Productos obtenidos correctamente',
+            productos
+        });
     } catch (error) {
         console.log('Error', error);
         return res.status(500).json({ message: 'Internal server error' });
@@ -226,12 +233,14 @@ app.get('/productos', validateToken, async (req, res) => {
 // Crear un nuevo producto
 app.post('/productos', validateToken, async (req, res) => {
     try {
-        const { nombre, tipoProducto, descripcion, precio, stock } = req.body;
+        const { nombre, tipoProducto, descripcion, precio, stock, urlImagen } = req.body;
         if (!nombre || !precio || !stock) {
             return res.status(400).json({ message: 'Nombre, Precio y Stock son requeridos' });
         }
-        const nuevoProducto = await Producto.create({ nombre, tipoProducto, descripcion, precio, stock });
-        return res.status(201).json({ producto: nuevoProducto });
+        const nuevoProducto = await Producto.create({ nombre, tipoProducto, descripcion, precio, stock, urlImagen });
+        return res.status(201).json({
+            message: 'Producto creado correctamente',
+            producto: nuevoProducto });
     } catch (error) {
         console.log('Error', error);
         return res.status(500).json({ message: 'Internal server error' });
@@ -245,7 +254,7 @@ app.put('/productos/:id', validateToken, async (req, res) => {
         if (!producto) {
             return res.status(404).json({ message: 'Producto no encontrado' });
         }
-        const { nombre, tipoProducto, descripcion, precio, stock } = req.body;
+        const { nombre, tipoProducto, descripcion, precio, stock, urlImagen } = req.body;
         if (nombre) {
             producto.nombre = nombre;
         }
@@ -261,8 +270,13 @@ app.put('/productos/:id', validateToken, async (req, res) => {
         if (stock) {
             producto.stock = stock;
         }
+        if (urlImagen) {
+            producto.urlImagen = urlImagen;
+        }
         await producto.save();
-        return res.json({ producto });
+        return res.json({ 
+            message: 'Producto actualizado correctamente',
+            producto });
     } catch (error) {
         console.log('Error', error);
         return res.status(500).json({ message: 'Internal server error' });
@@ -276,13 +290,86 @@ app.delete('/productos/:id', validateToken, async (req, res) => {
         if (!producto) {
             return res.status(404).json({ message: 'Producto no encontrado' });
         }
-        await producto.destroy();
+        await producto.destroy();include
         return res.json({ message: 'Producto eliminado' });
     } catch (error) {
         console.log('Error', error);
         return res.status(500).json({ message: 'Internal server error' });
     }
 });
+
+//crear Venta
+app.post('/ventas', validateToken, async (req, res) => {
+    console.log('req.body', req.body);
+    let detallesVenta = [];
+    let totalVenta = 0;
+    try {
+        const { clienteId, detalles } = req.body;  // detalles es un array de objetos [{ productoId, cantidad, precioUnitario }]
+        if (!clienteId || !detalles || !detalles.length) {
+            return res.status(400).json({ message: 'Datos incompletos para crear la venta' });
+        }
+        for (let detalle of detalles) {
+            totalVenta += detalle.cantidad * detalle.precioUnitario;
+        
+        }
+        const nuevaVenta = await Venta.create({
+            id_cliente: clienteId,
+            totalVenta: totalVenta,
+            fechaVenta: new Date()
+            });
+        for (let detalle of detalles) {
+
+            detallesVenta.push( await DetalleVenta.create({
+                id_venta: nuevaVenta.id,
+                codigo_producto: detalle.productoId,
+                cantidad: detalle.cantidad,
+                precioVenta: detalle.precioUnitario,
+                subtotal: detalle.cantidad * detalle.precioUnitario
+            })
+            
+            );
+            // Actualizar stock
+            const producto = await Producto.findByPk(detalle.productoId);
+            producto.stock -= detalle.cantidad;
+            await producto.save();
+
+        }
+        return res.status(201).json({ message: 'Venta creada correctamente' });
+    } catch (error) {
+        console.log('Error', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Obtener todas las ventas
+app.get('/ventas', validateToken, async (req, res) => {
+    try {
+        const ventas = await Venta.findAll();
+        return res.json({ ventas });
+    } catch (error) {
+        console.log('Error', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Eliminar una venta por id
+app.delete('/ventas/:id', validateToken, async (req, res) => {
+    try {
+        const venta = await Venta.findByPk(req.params.id);
+        if (!venta) {
+            return res.status(404).json({ message: 'Venta no encontrada' });
+        }
+        await venta.destroy();
+        return res.json({ message: 'Venta eliminada' });
+    } catch (error) {
+        console.log('Error', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+}
+);
+
+
+
 
 // Obtener todas las compras
 app.get('/compras', validateToken, async (req, res) => {
@@ -369,6 +456,9 @@ app.delete('/compras/:id', validateToken, async (req, res) => {
     }
 });
 
+
+
+
 // 
 sequelize
     .authenticate()
@@ -378,7 +468,7 @@ sequelize
     })
     .then(() => {
         console.log('Modelos sincronizados');
-        app.listen(port, '192.168.233.125',() => {
+        app.listen(port, '192.168.1.89',() => {
             console.log(`Servidor corriendo en http://localhost:${port}`);
         });
     })

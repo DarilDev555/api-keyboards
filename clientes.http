@@ -1,7 +1,7 @@
 GET http://192.168.1.89:3000/ HTTP/1.1
 #############################################################
 ###
-POST http://192.168.1.89:3000/login HTTP/1.1
+POST http://192.168.233.125:3000/login HTTP/1.1
 Content-Type: application/json
 
 {
@@ -10,8 +10,8 @@ Content-Type: application/json
 }
 
 ###
-GET http://192.168.1.89:3000/clientes HTTP/1.1
-Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub21icmVVc3VhcmlvIjoiRGFyaWwiLCJpYXQiOjE3MzEyOTYxNjMsImV4cCI6MTczMTI5NjQ2M30.UVekfhw5Q8gZY0-5yxDUDtimNi1oBLeKvmva1aH_MgA
+GET http://192.168.233.125:3000/clientes HTTP/1.1
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub21icmVVc3VhcmlvIjoiRGFyaWwiLCJpYXQiOjE3MzE1MjI0NDQsImV4cCI6MTczMTUyMjc0NH0.KIm4nel4q_YL2_IviIjmxWfexNQX0pV0Lde0hT5at-w
 
 ###
 POST http://192.168.1.89:3000/clientes HTTP/1.1

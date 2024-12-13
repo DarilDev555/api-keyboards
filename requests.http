@@ -9,7 +9,7 @@ Content-Type: application/json
     "contrasena": "8520"
 }
 ###
-POST http://192.168.1.89:3000/usuarios HTTP/1.1
+POST http://192.168.1.89:3000/api/usuarios HTTP/1.1
 Content-Type: application/json
 
 {
@@ -19,10 +19,19 @@ Content-Type: application/json
     "rol": "administrador"
 }
 
+###################################
+
+POST http://127.0.0.1:8000/usuarios
+Content-Type: application/json
+
+{
+    "nombreUsuario": "Daril",
+    "correoElectronico": "andreyhernandez67@gmail.com",
+    "contrasena": "8520",
+}
 
 
-
-
+####################################
 
 
 
@@ -37,7 +46,7 @@ Content-Type: application/json
 
 ###
 GET http://192.168.1.89:3000/clientes HTTP/1.1
-Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkRhcmlsIiwiaWF0IjoxNzMxMjgzNjI2LCJleHAiOjE3MzEyODM5MjZ9.TwVe0zKb2ufVFEY-m257niBLK0xYcB44y9Mfr-dmw14
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub21icmVVc3VhcmlvIjoiRGFyaWwiLCJpYXQiOjE3MzQwNjIxNTIsImV4cCI6MTczNDA2NTE1Mn0.mipIUg_3hDqnCTsjxCYfGor-q8ZQKEx8K7rFNfyjF1g
 ###
 GET http://192.168.1.89:3000/clientes?accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkRhcmlsIiwiaWF0IjoxNzI5Mjc2MDUzLCJleHAiOjE3MjkyNzYzNTN9.ery2pnrA3yiLHtoGnO2h_d5MTLgk0IKCzlQEdjdm1e0 HTTP/1.1
 
@@ -63,9 +72,9 @@ DELETE http://192.168.1.89:3000/clientes/3?accessToken=eyJhbGciOiJIUzI1NiIsInR5c
 
 #############################################################
 ###
-GET http://192.168.1.89:3000/productos?accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkRhcmlsIiwiaWF0IjoxNzMxMDM4OTIzLCJleHAiOjE3MzEwMzkyMjN9.y-a6iNCFeUOBzxCvdcnGkz2--31ZACX5ZkrTORFY3ns HTTP/1.1
+GET http://192.168.1.89:3000/productos?accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub21icmVVc3VhcmlvIjoiRGFyaWwiLCJpYXQiOjE3MzQwNjAzMzMsImV4cCI6MTczNDA2MzMzM30.GfgHAWo10tKYfeGMQyBl7BfFU1KSKKTy8lW_znKIN2M HTTP/1.1
 ###
-POST http://192.168.1.89:3000/productos HTTP/1.1
+POST http://192.168.1.89:3000/productos?accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub21icmVVc3VhcmlvIjoiRGFyaWwiLCJpYXQiOjE3MzM5ODg1MTEsImV4cCI6MTczMzk5MTUxMX0.HDIW5zi9Z3C0V_Q34etV9O8kEQNIV_SBul-sCVh-clc HTTP/1.1
 Content-Type: application/json
 
 {
@@ -73,10 +82,11 @@ Content-Type: application/json
     "tipoProducto": "Switch",
     "descripcion": "Interruptor mecánico lineal con baja fuerza de actuación.",
     "precio": 50.99,
-    "stock": 100
+    "stock": 100,
+    "urlImagen": "https://cdn.shopify.com/s/files/1/1473/3902/products/Cherry-MX-Red_1024x1024.jpg?v=1568749844"
 }
 ###
-POST http://192.168.1.89:3000/productos HTTP/1.1
+POST http://192.168.1.89:3000/productos?accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub21icmVVc3VhcmlvIjoiRGFyaWwiLCJpYXQiOjE3MzQwNjAzMzMsImV4cCI6MTczNDA2MzMzM30.GfgHAWo10tKYfeGMQyBl7BfFU1KSKKTy8lW_znKIN2M HTTP/1.1
 Content-Type: application/json
 
 {
@@ -86,6 +96,36 @@ Content-Type: application/json
     "precio": 25.99,
     "stock": 200
 }
+
+###
+POST http://192.168.1.89:3000/ventas?accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub21icmVVc3VhcmlvIjoiRGFyaWwiLCJpYXQiOjE3MzQwNjgxNjcsImV4cCI6MTczNDA3MTE2N30.dCOoKKk2ZaVnWsNYqNHojAKcy9CV_ESTSDfaLbdwBDs HTTP/1.1
+Content-Type: application/json
+
+{
+    "clienteId": 9,
+    "detalles": [
+        {
+            "productoId": 1,
+            "cantidad": 2,
+            "precioUnitario": 50.99
+        },
+        {
+            "productoId": 1,
+            "cantidad": 4,
+            "precioUnitario": 48.77
+        }
+    ]
+}
+
+###
+GET http://192.168.1.89:3000/ventas?accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub21icmVVc3VhcmlvIjoiRGFyaWwiLCJpYXQiOjE3MzQwNjgxNjcsImV4cCI6MTczNDA3MTE2N30.dCOoKKk2ZaVnWsNYqNHojAKcy9CV_ESTSDfaLbdwBDs HTTP/1.1
+
+
+
+
+###
+DELETE http://192.168.1.89:3000/ventas/23?accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub21icmVVc3VhcmlvIjoiRGFyaWwiLCJpYXQiOjE3MzQwNjAzMzMsImV4cCI6MTczNDA2MzMzM30.GfgHAWo10tKYfeGMQyBl7BfFU1KSKKTy8lW_znKIN2M HTTP/1.1
+
 
 ###
 PUT http://192.168.1.89:3000/productos/1 HTTP/1.1
@@ -122,6 +162,107 @@ Content-Type: application/json
         }
     ]
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ###
 PUT http://192.168.1.89:3000/compras/1 HTTP/1.1
 Content-Type: application/json
