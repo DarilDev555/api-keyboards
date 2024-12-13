@@ -98,10 +98,11 @@ app.post('/usuarios', async (req, res) => {
 
         return res.status(201).json({ usuario: nuevoUsuario });
     } catch (error) {
-        console.log('Error', error);
-        return res.status(500).json({ message: 'Internal server error' });
+        console.error('Error al crear el usuario:', error);  // Imprimir el error en la consola para depurar
+        return res.status(500).json({ message: 'Internal server error', error: error.message }); // Incluir el mensaje del error
     }
 });
+
 
 app.post('/login', async (req, res) => {
     const { nombreUsuario, contrasena } = req.body;

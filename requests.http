@@ -1,19 +1,19 @@
 GET http://192.168.1.89:3000/ HTTP/1.1
 #############################################################
 ###
-POST http://192.168.1.89:3000/login HTTP/1.1
+POST https://api-keyboards-production.up.railway.app/login HTTP/1.1
 Content-Type: application/json
 
 {
-    "nombreUsuario": "Daril",
+    "nombreUsuario": "Andrey",
     "contrasena": "8520"
 }
 ###
-POST http://192.168.1.89:3000/api/usuarios HTTP/1.1
+POST https://api-keyboards-production.up.railway.app//api/usuarios HTTP/1.1
 Content-Type: application/json
 
 {
-    "nombreUsuario": "Daril",
+    "nombreUsuario": "Andrey",
     "correoElectronico": "andreyhernandez67@gmail.com",
     "contrasena": "8520",
     "rol": "administrador"
@@ -21,13 +21,15 @@ Content-Type: application/json
 
 ###################################
 
-POST http://127.0.0.1:8000/usuarios
+POST https://api-keyboards-production.up.railway.app/usuarios
 Content-Type: application/json
 
 {
-    "nombreUsuario": "Daril",
-    "correoElectronico": "andreyhernandez67@gmail.com",
+    "nombreUsuario": "Andrey",
     "contrasena": "8520",
+    "rol" : "administrador",
+    "correoElectronico": "andreyhernandez67@gmail.com",
+    x
 }
 
 
