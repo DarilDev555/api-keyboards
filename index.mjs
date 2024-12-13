@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import { sequelize } from './connection.mjs';
 import { Usuario, Cliente, Direccion, Producto, Categoria, Proveedor, CompraProveedor, DetalleCompraProveedor, Venta, DetalleVenta, Pago, Carrito, DetalleCarrito } from './models.mjs';
 import cors from 'cors';
-
+import bcrypt from 'bcryptjs';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -35,6 +35,8 @@ const validateToken = (req, res, next) => {
 
 };
 
+
+
 const verificarUsuario = async (nombreUsuario2, contrasena) => {
     try {
         // Busca el usuario en la base de datos
@@ -47,10 +49,12 @@ const verificarUsuario = async (nombreUsuario2, contrasena) => {
         }
 
         // Verifica si la contraseña coincide
-        if (usuario.contrasena === contrasena) {
-            return 0;
+        const passwordMatch = await bcrypt.compare(contrasena, usuario.contrasena); // Compara las contraseñas
+
+        if (passwordMatch) {
+            return 0; // Contraseña correcta
         } else {
-            return 2;
+            return 2; // Contraseña incorrecta
         }
     } catch (error) {
         console.log('Error en la verificación de usuario:', error);
@@ -76,13 +80,24 @@ app.get('/usuarios', validateToken, async (req, res) => {
 app.post('/usuarios', async (req, res) => {
     try {
         const { nombreUsuario, contrasena, rol, correoElectronico } = req.body;
+
+        // Verificar que todos los campos necesarios están presentes
         if (!nombreUsuario || !contrasena || !rol || !correoElectronico) {
             return res.status(400).json({ message: 'Nombre de Usuario, Contraseña, Rol y Correo Electrónico son requeridos' });
         }
-        const nuevoUsuario = await Usuario.create({ nombreUsuario, contrasena, rol, correoElectronico });
+
+        // Encriptar la contraseña antes de guardarla
+        const hashedPassword = await bcrypt.hash(contrasena, 10); // 10 es el número de "salt rounds"
+
+        const nuevoUsuario = await Usuario.create({
+            nombreUsuario,
+            contrasena: hashedPassword, // Usar la contraseña encriptada
+            rol,
+            correoElectronico
+        });
+
         return res.status(201).json({ usuario: nuevoUsuario });
-    }
-    catch (error) {
+    } catch (error) {
         console.log('Error', error);
         return res.status(500).json({ message: 'Internal server error' });
     }
@@ -124,24 +139,53 @@ app.get('/clientes', validateToken, async (req, res) => {
         return res.status(500).json({ message: 'Internal server error' });
     }
 });
+import bcrypt from 'bcryptjs';
 
-// Crear un nuevo cliente
 app.post('/clientes', validateToken, async (req, res) => {
-    try{
+    try {
         const { nombre, apellidoPaterno, apellidoMaterno, correoElectronico, telefono } = req.body;
-        if (!nombre || !correoElectronico) {
-            return res.status(400).json({ message: 'Nombre y Correo Electrónico son requeridos' });
+
+        // Verifica que los campos requeridos estén presentes
+        if (!nombre || !correoElectronico || !telefono) {
+            return res.status(400).json({ message: 'Nombre, Correo Electrónico y Teléfono son requeridos' });
         }
-        const nuevoCliente = await Cliente.create({ nombre, apellidoPaterno, apellidoMaterno, correoElectronico, telefono });
-        return res.status(201).json({
-            message: 'Cliente creado correctamente',
-            cliente: nuevoCliente 
+
+        // Crear el cliente en la base de datos
+        const nuevoCliente = await Cliente.create({
+            nombre,
+            apellidoPaterno,
+            apellidoMaterno,
+            correoElectronico,
+            telefono
         });
+
+        // Crear la contraseña para el nuevo usuario con base en su nombre y teléfono
+        const contrasenaGenerada = `${nombre}${telefono}`;
+        
+        // Encriptar la contraseña
+        const hashedPassword = await bcrypt.hash(contrasenaGenerada, 10);
+
+        // Crear el usuario asociado al cliente, usando su correo como nombre de usuario
+        const nuevoUsuario = await Usuario.create({
+            nombreUsuario: correoElectronico, // Usar correo como nombre de usuario
+            contrasena: hashedPassword,       // Contraseña encriptada
+            rol: 'cliente',                   // Rol como cliente (puedes ajustarlo según lo que necesites)
+            correoElectronico: correoElectronico
+        });
+
+        // Enviar respuesta de éxito
+        return res.status(201).json({
+            message: 'Cliente y usuario creados correctamente',
+            cliente: nuevoCliente,
+            usuario: nuevoUsuario
+        });
+
     } catch (error) {
         console.log('Error', error);
         return res.status(500).json({ message: 'Internal server error' });
     }
 });
+
 
 // Actualizar un cliente por id
 app.put('/clientes/:id', validateToken, async (req, res) => {
