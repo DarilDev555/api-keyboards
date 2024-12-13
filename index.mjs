@@ -139,7 +139,7 @@ app.get('/clientes', validateToken, async (req, res) => {
         return res.status(500).json({ message: 'Internal server error' });
     }
 });
-import bcrypt from 'bcryptjs';
+
 
 app.post('/clientes', validateToken, async (req, res) => {
     try {
